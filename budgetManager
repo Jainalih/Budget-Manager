@@ -1,0 +1,326 @@
+package budget;
+
+import java.io.*;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class Main {
+    public static void main(String[] args) {
+        BudgetManager budgetManager = new BudgetManager();
+        // whenever you create a class with methods, you need to create
+        //an instance/object of the class so u can actually use those methods.
+        CLI cli = new CLI(budgetManager);
+        // the CLI constructor in the CLI class uses budgetManager parameter in its
+        //constructor because it's gonna use the budgetManager object in it's classes'
+        //methods(the CLI class methods).
+        System.out.println("Bye!"); // whenever 0 is printed
+        // its returns to the beginning of the code, which is here,
+        // and bye will be printed.
+    }
+}
+
+
+
+class BudgetManager { //this class edits variables and arrays with information
+    public static List<Purchase> purchases = new ArrayList<>();
+    public static double balance = 0.00;
+
+    public void addPurchase(Purchase purchase) {
+        balance -= purchase.getPrice();
+        purchases.add(purchase);
+
+    }
+
+    public void printPurchases(PurchaseType pt) {
+        if (purchases.isEmpty()) {
+            System.out.println("Purchase list is empty");
+        }
+
+        else {
+            System.out.println((pt == null ? "all" : pt) + ":");
+            // this ternary operator says if pt == null, then print out "all:"
+            // otherwise printout whichever variable pt equals + ":"
+            //like the example:
+            //Food:
+            //Milk $3.50
+            //Total sum: $3.50
+            double sum = 0;
+            for (Purchase purchase : purchases) { // loops thru
+                if (pt == null || purchase.getPurchaseType() == pt) {
+                    // if pt == null, aka the user wants to print out ALL purchases
+                    // or the purchase type of the purchase we are currently on
+                    // matches pt (purchase type that user inputted)
+                    //then print
+                    purchase.print();
+                    sum += purchase.getPrice();
+                }
+            }
+            System.out.printf("Total sum: $%.2f", sum); // btw printf prints a formatted string
+            System.out.println();
+            // btw printing out the sum wasnt implemented as a method in the Purchase class like
+            //for purchase.print();
+            // because purchase.print() prints out name and price which is used all over the program and
+            //therefore declared as fields in the Purchase class and set with default values in the constructor
+            // then those variables/fields were used in the Purchase class methods that could be called from
+            //anywhere
+            // sum is only used here, therefore there would be no point to write a field for it in
+            //Purchase class, put it in constructor, and set it.
+        }
+    }
+
+    public void printBudget() {
+        System.out.printf("Balance: $%.2f", balance);
+        System.out.println();
+    }
+
+    public void changeBalance(double delta) {
+        balance += delta;
+
+    }
+
+
+}
+
+
+
+
+ class CLI {
+    boolean flag = true;
+    public BudgetManager budgetManager;
+    //calling the budgetManager object into this class.
+    Scanner scanner = new Scanner(System.in);
+
+    CLI (BudgetManager budgetManager) { // constructor for CLI class
+        this.budgetManager = budgetManager;
+        run();
+    }
+
+    private void run() {
+        while (flag) {
+            System.out.println("Choose your action:");
+            System.out.println("1) Add income");
+            System.out.println("2) Add purchase");
+            System.out.println("3) Show list of purchases");
+            System.out.println("4) Balance");
+            System.out.println("5) Save");
+            System.out.println("6) Load");
+            System.out.println("0) Exit");
+            int option = Integer.parseInt(scanner.nextLine());
+            System.out.println();
+
+            if (option == 1) {
+                addIncome(); // so all these methods are in this class, and those methods
+                //call other methods from other classes we made.
+                //we made multiple classes just to organize everything.
+            } else if (option == 2) {
+                addPurchase();
+            } else if (option == 3) {
+                printPurchases();
+            } else if (option == 4) {
+                printBudget();
+            }else if (option == 5) {
+                savePurchases();
+            }else if (option == 6){
+                loadPurchases();
+            } else if (option == 0) {
+                flag = false;
+                return; //break is used when you want to exit from the loop,
+                // while return is used to go back to the step where it
+                // was called or to stop further execution.
+            } else {
+                System.out.println("Incorrect option");
+            }
+        }
+    }
+
+    private void addIncome() {
+        try {
+            System.out.println("Enter income:");
+            double income = Double.parseDouble(scanner.nextLine());
+            budgetManager.changeBalance(income); // so income is read, doesnt have to be stored
+            // in an array or anything because the user never asks to print it out.
+            // then we add it to balance by calling the changeBalance method and done.
+            System.out.println("Income was added!");
+            System.out.println();
+        } catch (Exception e) {
+            System.out.println("Incorrect input format");
+        }
+    }
+
+    private void addPurchase() {
+        try {
+            PurchaseType pt = PurchaseType.OTHER; // since whenever we add or show purchases,
+            //we have to pick a TYPE, we created an enum inside the PurchaseType class to
+            //declare the constant variables of the TYPES of purchases.
+            //We do this just for better readability and organization.
+
+            //CREATE an instance of the enum so we can use it in below methods.
+            // created an instance/object of the enum using class PurchaseType
+            // you cannot create an object/instance of enum with the "new" statement,
+            // you have to reference an already existing enum in the enum you made
+            System.out.println("Choose the type of purchase:");
+            System.out.println("1) Food");
+            System.out.println("2) Clothes");
+            System.out.println("3) Entertainment");
+            System.out.println("4) Other");
+            System.out.println("5) Back");
+            int option = Integer.parseInt(scanner.nextLine());
+
+            if (option == 1) {
+                pt = PurchaseType.FOOD;// so if "1" is selected, pt is going to reference
+                // the food constant enum variable, and same concept for below numbers.
+            } else if (option == 2) {
+                pt = PurchaseType.CLOTHES;
+            } else if (option == 3) {
+                pt = PurchaseType.ENTERTAINMENT;
+            } else if (option == 4) {
+                pt = PurchaseType.OTHER;
+            } else if (option == 5) {
+                System.out.println();
+                return; //will return to the very beginning of this class
+            } else {
+                System.out.println("Incorrect option");
+            }
+            System.out.println();
+
+            System.out.println("Enter purchase name");
+            String name = scanner.nextLine(); // reading and storing name in a simple variable, and
+            // will be stored in array when budgetManager.addPurchase() method is called a cpl lines down.
+            System.out.println("Enter its price");
+            double income = Double.parseDouble(scanner.nextLine()); // again just reading
+            // and storing income in a simple variable
+            //but not storing it in an array or anything because user will not ask to print it.
+            budgetManager.addPurchase(new Purchase(name, income, pt));
+            System.out.println("Purchase was added");
+            System.out.println();
+            addPurchase(); // returns and asks "what type of purchase" again, if the user has
+            //no more purchases, then can type "5".
+        } catch (Exception e) {
+            System.out.println("Incorrect input format");
+        }
+    }
+
+
+    private void printPurchases() {
+        PurchaseType pt = PurchaseType.OTHER;
+        System.out.println("Choose the type of purchase:");
+        System.out.println("1) Food");
+        System.out.println("2) Clothes");
+        System.out.println("3) Entertainment");
+        System.out.println("4) Other");
+        System.out.println("5) All");
+        System.out.println("6) Back");
+        int option = Integer.parseInt(scanner.nextLine());
+
+        if (option == 1) {
+            pt = PurchaseType.FOOD;
+        } else if (option == 2) {
+            pt = PurchaseType.CLOTHES;
+        } else if (option == 3) {
+            pt = PurchaseType.ENTERTAINMENT;
+        } else if (option == 4) {
+            pt = PurchaseType.OTHER;
+        } else if (option == 5) {
+            pt = null;
+        } else if (option == 6) {
+            System.out.println();
+            return;
+        } else {
+            System.out.println("Incorrect option");
+        }
+        System.out.println();
+        budgetManager.printPurchases(pt);
+        System.out.println();
+        printPurchases();
+    }
+
+     private void printBudget() {
+         budgetManager.printBudget();
+         System.out.println();
+     }
+     public void savePurchases() {
+         try{
+             // Catch errors in I/O if necessary.
+             // Open a file to write to
+             FileOutputStream saveFile=new FileOutputStream("purchases.txt");
+             // Create an ObjectOutputStream to put objects into save file.
+             ObjectOutputStream save = new ObjectOutputStream(saveFile);
+             // Now we do the save.
+              save.writeObject(budgetManager);
+             // Close the file.
+             System.out.println("Purchases were saved!");
+             System.out.println();
+             save.close(); // This also closes saveFile.
+         }
+         catch(Exception exc){
+             exc.printStackTrace(); // If there was an error, print the info.
+         }
+
+     }
+
+     public void loadPurchases() {
+         try{
+             // Open file to read from
+             FileInputStream saveFile = new FileInputStream("purchases.txt");
+             // Create an ObjectInputStream to get objects from save file.
+             ObjectInputStream save = new ObjectInputStream(saveFile);
+             //load the file
+             System.out.println("Purchases were loaded!");
+             System.out.println();
+             budgetManager = (BudgetManager) save.readObject();
+             save.close(); // This also closes saveFile.
+         }
+         catch(Exception exc){
+             exc.printStackTrace(); // If there was an error, print the info.
+         }
+     }
+
+}
+
+
+ class Purchase { //this class returns ands sets values
+    private final String name;
+    private final double price;
+    private final PurchaseType purchaseType;
+
+    public Purchase(String name, double price, PurchaseType purchaseType) {
+        // when a purchase is added to the arraylist, it sits as a purchases with
+        //these three characteristics above
+        // but when we have to print it it needs to look a certain way right, so
+        //below, the print method prints it out in the specfic formatted way
+        //using the name and the price from the purchase.
+        this.name = name;
+        this.price = price;
+        this.purchaseType = purchaseType;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public double getPrice() {
+        return price;
+    }
+    public PurchaseType getPurchaseType() {
+        return purchaseType;
+    }
+
+    public void print() {
+        System.out.printf("%s $%.2f", name, price);
+        System.out.println();
+    }
+}
+
+ enum PurchaseType {
+    FOOD, CLOTHES, ENTERTAINMENT, OTHER;
+
+    // enumerations used to declare constant variables,
+    // here: FOOD, CLOTHES, ENTERTAINMENT, OTHER, mainly
+    // just used for readability
+     // sp basically you set these list of variables, and
+     // you can reference these variables elsewhere
+     // Enum also is good for when u have static variables
+
+
+}
